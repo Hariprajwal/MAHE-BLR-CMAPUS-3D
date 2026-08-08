@@ -16,6 +16,7 @@ import { BuildingAgentDrawer } from './components/ai/BuildingAgentDrawer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { VRExplorationModal } from './components/vr/VRExplorationModal';
 import { GateManagerModal } from './components/ui/GateManagerModal';
+import { Cesium3DTilesModal } from './components/3d/Cesium3DTilesModal';
 import { EnvironmentControlsHUD, TimeOfDay, RenderPreset } from './components/ui/EnvironmentControlsHUD';
 
 export function App() {
@@ -24,7 +25,7 @@ export function App() {
   const [highlightedPoiIds, setHighlightedPoiIds] = useState<string[]>([]);
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
 
-  const [cameraMode, setCameraMode] = useState<'orbit' | 'aerial' | 'fps' | 'vr'>('orbit');
+  const [cameraMode, setCameraMode] = useState<'orbit' | 'aerial' | 'fps' | 'vr' | 'cesium'>('orbit');
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
 
   // Environment & FX Controls State
@@ -43,12 +44,12 @@ export function App() {
   const [isVROpen, setIsVROpen] = useState(false);
   const [isGateManagerOpen, setIsGateManagerOpen] = useState(false);
   const [isBuildingAgentOpen, setIsBuildingAgentOpen] = useState(false);
+  const [isCesiumOpen, setIsCesiumOpen] = useState(false);
 
   // AI Agent & Verification Queue State
   const [changeRequests, setChangeRequests] = useState<CampusChangeRequest[]>(INITIAL_CHANGE_REQUESTS);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
 
-  // Sync isNightMode toggle with timeOfDay
   const handleToggleNightMode = () => {
     const nextNight = !isNightMode;
     setIsNightMode(nextNight);
@@ -151,11 +152,13 @@ export function App() {
         isAIOpen={isAIOpen}
         isAdminOpen={isAdminOpen}
         isGateManagerOpen={isGateManagerOpen}
+        isCesiumOpen={isCesiumOpen}
         onSetCameraMode={(mode) => setCameraMode(mode)}
         onToggleNightMode={handleToggleNightMode}
         onToggleAI={() => setIsAIOpen(!isAIOpen)}
         onToggleAdmin={() => setIsAdminOpen(!isAdminOpen)}
         onToggleGateManager={() => setIsGateManagerOpen(!isGateManagerOpen)}
+        onToggleCesium={() => setIsCesiumOpen(!isCesiumOpen)}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenRoutePlanner={() => setIsRouteOpen(true)}
       />
@@ -182,7 +185,7 @@ export function App() {
           selectedPoi={selectedPoi}
           highlightedPoiIds={highlightedPoiIds}
           activeCategory={activeCategory}
-          cameraMode={cameraMode}
+          cameraMode={cameraMode === 'cesium' ? 'orbit' : cameraMode}
           isNightMode={isNightMode}
           timeOfDay={timeOfDay}
           sunAngle={sunAngle}
@@ -222,6 +225,12 @@ export function App() {
         isOpen={isBuildingAgentOpen}
         poi={selectedPoi}
         onClose={() => setIsBuildingAgentOpen(false)}
+      />
+
+      {/* Cesium OGC 3D Tiles Geospatial Engine Modal */}
+      <Cesium3DTilesModal
+        isOpen={isCesiumOpen}
+        onClose={() => setIsCesiumOpen(false)}
       />
 
       {/* Campus Gate Management Hub */}

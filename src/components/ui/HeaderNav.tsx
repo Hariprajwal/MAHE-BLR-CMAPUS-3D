@@ -1,17 +1,19 @@
 import React from 'react';
-import { Sparkles, Sun, Moon, Compass, Eye, ShieldCheck, Search, Navigation, DoorOpen } from 'lucide-react';
+import { Sparkles, Sun, Moon, Compass, Eye, ShieldCheck, Search, Navigation, DoorOpen, Globe } from 'lucide-react';
 
 interface HeaderNavProps {
-  cameraMode: 'orbit' | 'aerial' | 'fps' | 'vr';
+  cameraMode: 'orbit' | 'aerial' | 'fps' | 'vr' | 'cesium';
   isNightMode: boolean;
   isAIOpen: boolean;
   isAdminOpen: boolean;
   isGateManagerOpen: boolean;
-  onSetCameraMode: (mode: 'orbit' | 'aerial' | 'fps' | 'vr') => void;
+  isCesiumOpen: boolean;
+  onSetCameraMode: (mode: 'orbit' | 'aerial' | 'fps' | 'vr' | 'cesium') => void;
   onToggleNightMode: () => void;
   onToggleAI: () => void;
   onToggleAdmin: () => void;
   onToggleGateManager: () => void;
+  onToggleCesium: () => void;
   onOpenSearch: () => void;
   onOpenRoutePlanner: () => void;
 }
@@ -22,11 +24,13 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   isAIOpen,
   isAdminOpen,
   isGateManagerOpen,
+  isCesiumOpen,
   onSetCameraMode,
   onToggleNightMode,
   onToggleAI,
   onToggleAdmin,
   onToggleGateManager,
+  onToggleCesium,
   onOpenSearch,
   onOpenRoutePlanner,
 }) => {
@@ -98,6 +102,19 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
           }`}
         >
           <span>🥽 WebXR VR</span>
+        </button>
+
+        {/* Cesium 3D Tiles Mode */}
+        <button
+          onClick={onToggleCesium}
+          className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            isCesiumOpen
+              ? 'bg-cyan-600 text-white shadow-md shadow-cyan-600/40'
+              : 'bg-cyan-950/60 text-cyan-300 border border-cyan-500/30 hover:bg-cyan-900/60'
+          }`}
+        >
+          <Globe className="w-3.5 h-3.5 text-cyan-400" />
+          <span>🌐 Cesium 3D Tiles</span>
         </button>
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
