@@ -9,9 +9,13 @@ interface Building3DModelProps {
   isSelected: boolean;
   isHighlighted: boolean;
   onClick: (poi: CampusPOI) => void;
+  isWireframe?: boolean;
 }
 
-function getCategoryIcon(cat: string): string {
+function getCategoryIcon(cat: string, id: string): string {
+  if (id === 'GATE_1') return '🚌';
+  if (id === 'GATE_2') return '🚛';
+  if (id === 'GATE_3') return '📦';
   switch (cat) {
     case 'academic': return '🏢';
     case 'hostel': return '🏨';
@@ -40,7 +44,7 @@ function getGPSBadgeColor(accuracy: string): string {
 
 function getGPSBadgeLabel(accuracy: string): string {
   switch (accuracy) {
-    case 'exact_verified': return '✓ GPS Verified';
+    case 'exact_verified': return '✓ GPS Exact';
     case 'zone_approximate': return '⬦ Zone Approx.';
     case 'off_campus': return '◌ Off-Campus';
     default: return '';
@@ -52,13 +56,15 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
   isSelected,
   isHighlighted,
   onClick,
+  isWireframe = false,
 }) => {
   const groupRef = useRef<THREE.Group>(null);
+  const beaconRef = useRef<THREE.Mesh>(null);
   const [hovered, setHovered] = useState(false);
   const [px, py, pz] = poi.position;
   const [w, h, d] = poi.size;
 
-  // Pulse / scale animation for selected or highlighted buildings
+  // Pulse animation for selected buildings & gate beacons
   useFrame((state) => {
     if (groupRef.current) {
       if (isSelected || isHighlighted) {
@@ -71,15 +77,21 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         }
       }
     }
+
+    if (beaconRef.current) {
+      beaconRef.current.position.y = h + 2 + Math.sin(state.clock.elapsedTime * 3) * 0.5;
+    }
   });
 
   const isSrishti = poi.category === 'srishti_house';
   const isSports = poi.category === 'sports';
   const isEntrance = poi.category === 'entrance';
+  const isGate1 = poi.id === 'GATE_1';
+  const isGate2 = poi.id === 'GATE_2';
+  const isGate3 = poi.id === 'GATE_3';
   const isParking = poi.category === 'parking';
   const isOffCampus = poi.gpsAccuracy === 'off_campus';
 
-  // Base building material color
   const baseColor = hovered ? '#60a5fa' : isSelected ? '#38bdf8' : poi.color;
 
   return (
@@ -97,11 +109,59 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
           color={baseColor}
           roughness={isSrishti ? 0.5 : 0.25}
           metalness={isSports ? 0.1 : 0.15}
+          wireframe={isWireframe}
         />
       </mesh>
 
+      {/* ── Gate 1 Custom Geometry: Transport Office Canopy + Security Tower ── */}
+      {isGate1 && !isWireframe && (
+        <group>
+          {/* 1st Floor Transport Office Canopy */}
+          <mesh position={[0, h + 1, 0]}>
+            <boxGeometry args={[w + 2, 1.8, d + 2]} />
+            <meshStandardMaterial color="#0284c7" roughness={0.2} metalness={0.4} />
+          </mesh>
+          {/* Security Guard Tower */}
+          <mesh position={[-w / 2 + 2, h + 3, 0]}>
+            <cylinderGeometry args={[1.5, 1.8, 4, 8]} />
+            <meshStandardMaterial color="#38bdf8" roughness={0.1} />
+          </mesh>
+          {/* RFID Boom Barrier Pole */}
+          <mesh position={[0, 1.5, d / 2 + 2]} rotation={[0, 0, Math.PI / 12]}>
+            <boxGeometry args={[w - 4, 0.4, 0.4]} />
+            <meshStandardMaterial color="#ef4444" />
+          </mesh>
+        </group>
+      )}
+
+      {/* ── Gate 3 Custom Geometry: Parcel Counter Kiosk ── */}
+      {isGate3 && !isWireframe && (
+        <group>
+          {/* Backside Parcel Counter Structure */}
+          <mesh position={[0, 2, -d / 2 - 2]}>
+            <boxGeometry args={[w * 0.8, 3.5, 4]} />
+            <meshStandardMaterial color="#16a34a" roughness={0.3} />
+          </mesh>
+          {/* Parcel Kiosk Roof Canopy */}
+          <mesh position={[0, 4, -d / 2 - 2]}>
+            <boxGeometry args={[w * 0.9, 0.5, 5]} />
+            <meshStandardMaterial color="#4ade80" metalness={0.3} />
+          </mesh>
+        </group>
+      )}
+
+      {/* ── Gate 2 Custom Geometry: Service Check Barrier ── */}
+      {isGate2 && !isWireframe && (
+        <group>
+          <mesh position={[0, 1, d / 2 + 1]}>
+            <boxGeometry args={[w + 1, 0.5, 0.5]} />
+            <meshStandardMaterial color="#f59e0b" />
+          </mesh>
+        </group>
+      )}
+
       {/* ── Roof Architectural Trim ── */}
-      {!isParking && !isSports && (
+      {!isParking && !isSports && !isEntrance && !isWireframe && (
         <mesh castShadow position={[0, h + 0.35, 0]}>
           <boxGeometry args={[w + 0.8, 0.7, d + 0.8]} />
           <meshStandardMaterial color={poi.accentColor} roughness={0.2} metalness={0.3} />
@@ -109,23 +169,21 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
       )}
 
       {/* ── Srishti House: Stepped Terrace Profile ── */}
-      {isSrishti && (
-        <>
-          {/* Upper stepped terrace (smaller box on top) */}
+      {isSrishti && !isWireframe && (
+        <group>
           <mesh castShadow position={[0, h + 1.5, 0]}>
             <boxGeometry args={[w * 0.7, 3, d * 0.7]} />
             <meshStandardMaterial color={poi.accentColor} roughness={0.4} />
           </mesh>
-          {/* Terrace garden platform */}
           <mesh position={[0, h + 3.2, 0]}>
             <boxGeometry args={[w * 0.6, 0.3, d * 0.6]} />
             <meshStandardMaterial color="#16a34a" roughness={0.8} />
           </mesh>
-        </>
+        </group>
       )}
 
       {/* ── Window Grid — Front Face ── */}
-      {h >= 8 && (
+      {h >= 8 && !isWireframe && (
         <mesh position={[0, h / 2, d / 2 + 0.06]}>
           <planeGeometry args={[w * 0.85, h * 0.75]} />
           <meshStandardMaterial
@@ -139,44 +197,17 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </mesh>
       )}
 
-      {/* ── Window Grid — Back Face ── */}
-      {h >= 8 && (
-        <mesh position={[0, h / 2, -(d / 2 + 0.06)]} rotation={[0, Math.PI, 0]}>
-          <planeGeometry args={[w * 0.85, h * 0.75]} />
-          <meshStandardMaterial
-            color="#93c5fd"
-            emissive="#1e40af"
-            emissiveIntensity={0.15}
-            roughness={0.05}
-            transparent
-            opacity={0.55}
+      {/* ── Beacon Light for Gates ── */}
+      {isEntrance && (
+        <mesh ref={beaconRef} position={[0, h + 2, 0]}>
+          <sphereGeometry args={[0.8, 16, 16]} />
+          <meshBasicMaterial
+            color={isGate1 ? '#38bdf8' : isGate3 ? '#4ade80' : '#f59e0b'}
           />
         </mesh>
       )}
 
-      {/* ── Sports Field: Green Turf Ground Plane ── */}
-      {isSports && h < 4 && (
-        <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, 0.15, 0]}>
-          <planeGeometry args={[w - 1, d - 1]} />
-          <meshStandardMaterial color="#22c55e" roughness={0.9} />
-        </mesh>
-      )}
-
-      {/* ── Entrance Gate: Arch-like pillars ── */}
-      {isEntrance && (
-        <>
-          <mesh position={[-w / 2 + 2, h / 2, 0]}>
-            <cylinderGeometry args={[0.8, 0.8, h, 8]} />
-            <meshStandardMaterial color={poi.accentColor} metalness={0.3} />
-          </mesh>
-          <mesh position={[w / 2 - 2, h / 2, 0]}>
-            <cylinderGeometry args={[0.8, 0.8, h, 8]} />
-            <meshStandardMaterial color={poi.accentColor} metalness={0.3} />
-          </mesh>
-        </>
-      )}
-
-      {/* ── Selection / Highlight Wireframe Outline ── */}
+      {/* ── Selection Wireframe Outline ── */}
       {(isSelected || isHighlighted || hovered) && (
         <mesh position={[0, h / 2, 0]}>
           <boxGeometry args={[w + 0.8, h + 0.8, d + 0.8]} />
@@ -189,7 +220,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </mesh>
       )}
 
-      {/* ── Off-Campus Diagonal Stripe Indicator ── */}
+      {/* ── Off-Campus Indicator ── */}
       {isOffCampus && (
         <mesh position={[0, h / 2, d / 2 + 0.1]}>
           <planeGeometry args={[w, h]} />
@@ -197,9 +228,9 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </mesh>
       )}
 
-      {/* ── Floating HTML Label ── */}
+      {/* ── Floating Label ── */}
       <Html
-        position={[0, h + (isSrishti ? 5.5 : 3.5), 0]}
+        position={[0, h + (isSrishti ? 5.5 : isEntrance ? 4.5 : 3.5), 0]}
         center
         distanceFactor={55}
         zIndexRange={[100, 0]}
@@ -220,23 +251,17 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
             }
           `}
         >
-          {/* Building name row */}
           <div className="flex items-center gap-1.5">
-            <span className="text-base leading-none">{getCategoryIcon(poi.category)}</span>
+            <span className="text-base leading-none">{getCategoryIcon(poi.category, poi.id)}</span>
             <div>
               <span className="font-bold tracking-wide block">{poi.shortName}</span>
-              {poi.rating && (
-                <span className="text-[10px] text-amber-300 flex items-center gap-0.5 font-semibold">
-                  ⭐ {poi.rating}
-                  <span className="text-slate-400 font-normal">({poi.reviewCount})</span>
-                </span>
-              )}
+              {isGate1 && <span className="text-[9px] text-sky-300 block font-normal">Transport Office Hub</span>}
+              {isGate3 && <span className="text-[9px] text-emerald-300 block font-normal">Parcel Pickup (8AM-10PM)</span>}
             </div>
           </div>
 
-          {/* GPS accuracy badge */}
           <div
-            className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md self-start"
+            className="text-[9px] font-bold uppercase tracking-widest px-1.5 py-0.5 rounded-md self-start mt-0.5"
             style={{
               backgroundColor: getGPSBadgeColor(poi.gpsAccuracy) + '30',
               color: getGPSBadgeColor(poi.gpsAccuracy),

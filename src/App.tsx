@@ -14,6 +14,8 @@ import { Minimap } from './components/ui/Minimap';
 import { AIChatDrawer } from './components/ai/AIChatDrawer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { VRExplorationModal } from './components/vr/VRExplorationModal';
+import { GateManagerModal } from './components/ui/GateManagerModal';
+import { EnvironmentControlsHUD, TimeOfDay, RenderPreset } from './components/ui/EnvironmentControlsHUD';
 
 export function App() {
   const [locations, setLocations] = useState<CampusPOI[]>(CAMPUS_LOCATIONS);
@@ -24,6 +26,12 @@ export function App() {
   const [cameraMode, setCameraMode] = useState<'orbit' | 'aerial' | 'fps' | 'vr'>('orbit');
   const [isNightMode, setIsNightMode] = useState<boolean>(false);
 
+  // Environment & FX Controls State
+  const [timeOfDay, setTimeOfDay] = useState<TimeOfDay>('day');
+  const [sunAngle, setSunAngle] = useState<number>(45);
+  const [renderPreset, setRenderPreset] = useState<RenderPreset>('realistic');
+  const [isRainActive, setIsRainActive] = useState<boolean>(false);
+
   const [activeRoute, setActiveRoute] = useState<RouteResult | null>(null);
 
   // Modals & Drawers state
@@ -32,10 +40,18 @@ export function App() {
   const [isAIOpen, setIsAIOpen] = useState(false);
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isVROpen, setIsVROpen] = useState(false);
+  const [isGateManagerOpen, setIsGateManagerOpen] = useState(false);
 
   // AI Agent & Verification Queue State
   const [changeRequests, setChangeRequests] = useState<CampusChangeRequest[]>(INITIAL_CHANGE_REQUESTS);
   const [auditLogs, setAuditLogs] = useState<AuditLogEntry[]>(INITIAL_AUDIT_LOGS);
+
+  // Sync isNightMode toggle with timeOfDay
+  const handleToggleNightMode = () => {
+    const nextNight = !isNightMode;
+    setIsNightMode(nextNight);
+    setTimeOfDay(nextNight ? 'night' : 'day');
+  };
 
   // Open VR Modal when cameraMode changes to VR
   useEffect(() => {
@@ -75,14 +91,12 @@ export function App() {
       prev.map((c) => (c.id === change.id ? { ...c, verificationStatus: 'approved_manual' } : c))
     );
 
-    // Apply payload updates to dataset
     if (change.targetId) {
       setLocations((prev) =>
         prev.map((loc) => (loc.id === change.targetId ? { ...loc, ...change.payload } : loc))
       );
     }
 
-    // Add entry to audit log
     const newAudit: AuditLogEntry = {
       id: `AUD_${Date.now()}`,
       timestamp: new Date().toLocaleString(),
@@ -113,7 +127,6 @@ export function App() {
   const handleAddChangeProposal = (newChange: CampusChangeRequest) => {
     setChangeRequests((prev) => [newChange, ...prev]);
 
-    // If auto-verified high confidence, sync immediately
     if (newChange.verificationStatus === 'verified_auto') {
       const newAudit: AuditLogEntry = {
         id: `AUD_${Date.now()}`,
@@ -128,6 +141,8 @@ export function App() {
     }
   };
 
+  const gateLocations = locations.filter((loc) => loc.category === 'entrance');
+
   return (
     <div className="w-screen h-screen overflow-hidden bg-slate-950 flex flex-col font-sans select-none relative">
       {/* Top Glassmorphic Navigation Header */}
@@ -136,12 +151,29 @@ export function App() {
         isNightMode={isNightMode}
         isAIOpen={isAIOpen}
         isAdminOpen={isAdminOpen}
+        isGateManagerOpen={isGateManagerOpen}
         onSetCameraMode={(mode) => setCameraMode(mode)}
-        onToggleNightMode={() => setIsNightMode(!isNightMode)}
+        onToggleNightMode={handleToggleNightMode}
         onToggleAI={() => setIsAIOpen(!isAIOpen)}
         onToggleAdmin={() => setIsAdminOpen(!isAdminOpen)}
+        onToggleGateManager={() => setIsGateManagerOpen(!isGateManagerOpen)}
         onOpenSearch={() => setIsSearchOpen(true)}
         onOpenRoutePlanner={() => setIsRouteOpen(true)}
+      />
+
+      {/* Floating Environment & FX Controls HUD */}
+      <EnvironmentControlsHUD
+        timeOfDay={timeOfDay}
+        onTimeOfDayChange={(mode) => {
+          setTimeOfDay(mode);
+          setIsNightMode(mode === 'night');
+        }}
+        sunAngle={sunAngle}
+        onSunAngleChange={(angle) => setSunAngle(angle)}
+        renderPreset={renderPreset}
+        onRenderPresetChange={(preset) => setRenderPreset(preset)}
+        isRainActive={isRainActive}
+        onToggleRain={() => setIsRainActive(!isRainActive)}
       />
 
       {/* Main 3D WebGL Canvas Engine */}
@@ -153,6 +185,10 @@ export function App() {
           activeCategory={activeCategory}
           cameraMode={cameraMode}
           isNightMode={isNightMode}
+          timeOfDay={timeOfDay}
+          sunAngle={sunAngle}
+          renderPreset={renderPreset}
+          isRainActive={isRainActive}
           routePoints={activeRoute ? activeRoute.path3DPoints : []}
           onSelectPoi={handleSelectPoi}
           onExitFPS={() => setCameraMode('orbit')}
@@ -179,6 +215,17 @@ export function App() {
         onNavigateTo={handleNavigateTo}
         onAerialView={handleAerialView}
         onEnterInterior={handleEnterInterior}
+      />
+
+      {/* Campus Gate Management Hub */}
+      <GateManagerModal
+        isOpen={isGateManagerOpen}
+        gates={gateLocations}
+        onClose={() => setIsGateManagerOpen(false)}
+        onSelectGatePOI={(poi) => {
+          setSelectedPoi(poi);
+          setCameraMode('orbit');
+        }}
       />
 
       {/* Campus Route Planner Drawer */}

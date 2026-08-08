@@ -1,15 +1,17 @@
 import React from 'react';
-import { Sparkles, Sun, Moon, Compass, Eye, ShieldCheck, Search, Navigation } from 'lucide-react';
+import { Sparkles, Sun, Moon, Compass, Eye, ShieldCheck, Search, Navigation, DoorOpen } from 'lucide-react';
 
 interface HeaderNavProps {
   cameraMode: 'orbit' | 'aerial' | 'fps' | 'vr';
   isNightMode: boolean;
   isAIOpen: boolean;
   isAdminOpen: boolean;
+  isGateManagerOpen: boolean;
   onSetCameraMode: (mode: 'orbit' | 'aerial' | 'fps' | 'vr') => void;
   onToggleNightMode: () => void;
   onToggleAI: () => void;
   onToggleAdmin: () => void;
+  onToggleGateManager: () => void;
   onOpenSearch: () => void;
   onOpenRoutePlanner: () => void;
 }
@@ -19,12 +21,14 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
   isNightMode,
   isAIOpen,
   isAdminOpen,
+  isGateManagerOpen,
   onSetCameraMode,
   onToggleNightMode,
   onToggleAI,
   onToggleAdmin,
+  onToggleGateManager,
   onOpenSearch,
-  onOpenRoutePlanner
+  onOpenRoutePlanner,
 }) => {
   return (
     <header className="absolute top-4 left-4 right-4 z-40 flex items-center justify-between pointer-events-none">
@@ -97,6 +101,19 @@ export const HeaderNav: React.FC<HeaderNavProps> = ({
         </button>
 
         <div className="w-px h-6 bg-slate-700 mx-1" />
+
+        {/* Campus Gates Hub */}
+        <button
+          onClick={onToggleGateManager}
+          className={`px-3 py-1.5 rounded-xl text-xs font-semibold flex items-center gap-1.5 transition-all ${
+            isGateManagerOpen
+              ? 'bg-emerald-600 text-white shadow-md shadow-emerald-600/40'
+              : 'bg-emerald-950/60 text-emerald-300 border border-emerald-500/30 hover:bg-emerald-900/60'
+          }`}
+        >
+          <DoorOpen className="w-3.5 h-3.5 text-emerald-400" />
+          <span>Gates 1–3</span>
+        </button>
 
         {/* Search */}
         <button
