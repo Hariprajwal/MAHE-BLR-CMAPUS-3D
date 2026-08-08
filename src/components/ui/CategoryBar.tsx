@@ -9,15 +9,16 @@ interface CategoryBarProps {
 
 export const CATEGORIES = [
   { id: 'all', label: 'All Campus', icon: '📍' },
+  { id: 'srishti_house', label: 'Srishti Houses', icon: '🎨' },
   { id: 'academic', label: 'Academic Blocks', icon: '🏢' },
   { id: 'hostel', label: 'Hostels', icon: '🏨' },
-  { id: 'restaurant', label: 'Food Court & Dining', icon: '🍕' },
-  { id: 'cafe', label: 'Cafes & Bakeries', icon: '☕' },
-  { id: 'library', label: 'Library & Learning', icon: '📚' },
-  { id: 'sports', label: 'Sports & Fitness', icon: '🏟️' },
-  { id: 'medical', label: 'Health & Clinic', icon: '🏥' },
-  { id: 'parking', label: 'Parking & EV', icon: '🅿️' },
-  { id: 'atm', label: 'ATMs & Banking', icon: '🏧' },
+  { id: 'restaurant', label: 'Food Court', icon: '🍕' },
+  { id: 'cafe', label: 'Cafes', icon: '☕' },
+  { id: 'library', label: 'Library', icon: '📚' },
+  { id: 'sports', label: 'Sports & Gym', icon: '🏟️' },
+  { id: 'medical', label: 'Medical 24/7', icon: '🏥' },
+  { id: 'parking', label: 'Parking', icon: '🅿️' },
+  { id: 'atm', label: 'ATMs', icon: '🏧' },
   { id: 'entrance', label: 'Campus Gates', icon: '🚪' }
 ];
 
