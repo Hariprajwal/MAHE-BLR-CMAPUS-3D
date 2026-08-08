@@ -3,6 +3,7 @@ import { useFrame } from '@react-three/fiber';
 import { Html } from '@react-three/drei';
 import * as THREE from 'three';
 import { CampusPOI } from '../../data/campusData';
+import { getBuildingAgent } from '../../data/buildingAgentEngine';
 
 interface Building3DModelProps {
   poi: CampusPOI;
@@ -64,6 +65,8 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
   const [px, py, pz] = poi.position;
   const [w, h, d] = poi.size;
 
+  const buildingAgent = getBuildingAgent(poi.id);
+
   // Pulse animation for selected buildings & gate beacons
   useFrame((state) => {
     if (groupRef.current) {
@@ -113,49 +116,26 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         />
       </mesh>
 
-      {/* ── Gate 1 Custom Geometry: Transport Office Canopy + Security Tower ── */}
+      {/* ── Gate 1 Custom Geometry ── */}
       {isGate1 && !isWireframe && (
         <group>
-          {/* 1st Floor Transport Office Canopy */}
           <mesh position={[0, h + 1, 0]}>
             <boxGeometry args={[w + 2, 1.8, d + 2]} />
             <meshStandardMaterial color="#0284c7" roughness={0.2} metalness={0.4} />
           </mesh>
-          {/* Security Guard Tower */}
           <mesh position={[-w / 2 + 2, h + 3, 0]}>
             <cylinderGeometry args={[1.5, 1.8, 4, 8]} />
             <meshStandardMaterial color="#38bdf8" roughness={0.1} />
           </mesh>
-          {/* RFID Boom Barrier Pole */}
-          <mesh position={[0, 1.5, d / 2 + 2]} rotation={[0, 0, Math.PI / 12]}>
-            <boxGeometry args={[w - 4, 0.4, 0.4]} />
-            <meshStandardMaterial color="#ef4444" />
-          </mesh>
         </group>
       )}
 
-      {/* ── Gate 3 Custom Geometry: Parcel Counter Kiosk ── */}
+      {/* ── Gate 3 Custom Geometry ── */}
       {isGate3 && !isWireframe && (
         <group>
-          {/* Backside Parcel Counter Structure */}
           <mesh position={[0, 2, -d / 2 - 2]}>
             <boxGeometry args={[w * 0.8, 3.5, 4]} />
             <meshStandardMaterial color="#16a34a" roughness={0.3} />
-          </mesh>
-          {/* Parcel Kiosk Roof Canopy */}
-          <mesh position={[0, 4, -d / 2 - 2]}>
-            <boxGeometry args={[w * 0.9, 0.5, 5]} />
-            <meshStandardMaterial color="#4ade80" metalness={0.3} />
-          </mesh>
-        </group>
-      )}
-
-      {/* ── Gate 2 Custom Geometry: Service Check Barrier ── */}
-      {isGate2 && !isWireframe && (
-        <group>
-          <mesh position={[0, 1, d / 2 + 1]}>
-            <boxGeometry args={[w + 1, 0.5, 0.5]} />
-            <meshStandardMaterial color="#f59e0b" />
           </mesh>
         </group>
       )}
@@ -168,7 +148,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </mesh>
       )}
 
-      {/* ── Srishti House: Stepped Terrace Profile ── */}
+      {/* ── Srishti House Stepped Terrace Profile ── */}
       {isSrishti && !isWireframe && (
         <group>
           <mesh castShadow position={[0, h + 1.5, 0]}>
@@ -182,7 +162,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </group>
       )}
 
-      {/* ── Window Grid — Front Face ── */}
+      {/* ── Window Grid ── */}
       {h >= 8 && !isWireframe && (
         <mesh position={[0, h / 2, d / 2 + 0.06]}>
           <planeGeometry args={[w * 0.85, h * 0.75]} />
@@ -193,16 +173,6 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
             roughness={0.05}
             transparent
             opacity={0.75}
-          />
-        </mesh>
-      )}
-
-      {/* ── Beacon Light for Gates ── */}
-      {isEntrance && (
-        <mesh ref={beaconRef} position={[0, h + 2, 0]}>
-          <sphereGeometry args={[0.8, 16, 16]} />
-          <meshBasicMaterial
-            color={isGate1 ? '#38bdf8' : isGate3 ? '#4ade80' : '#f59e0b'}
           />
         </mesh>
       )}
@@ -220,15 +190,7 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
         </mesh>
       )}
 
-      {/* ── Off-Campus Indicator ── */}
-      {isOffCampus && (
-        <mesh position={[0, h / 2, d / 2 + 0.1]}>
-          <planeGeometry args={[w, h]} />
-          <meshBasicMaterial color="#94a3b8" wireframe transparent opacity={0.3} />
-        </mesh>
-      )}
-
-      {/* ── Floating Label ── */}
+      {/* ── Floating HTML Label with Building Agent Avatar ── */}
       <Html
         position={[0, h + (isSrishti ? 5.5 : isEntrance ? 4.5 : 3.5), 0]}
         center
@@ -251,12 +213,15 @@ export const Building3DModel: React.FC<Building3DModelProps> = ({
             }
           `}
         >
+          {/* Building name & agent avatar */}
           <div className="flex items-center gap-1.5">
             <span className="text-base leading-none">{getCategoryIcon(poi.category, poi.id)}</span>
             <div>
               <span className="font-bold tracking-wide block">{poi.shortName}</span>
-              {isGate1 && <span className="text-[9px] text-sky-300 block font-normal">Transport Office Hub</span>}
-              {isGate3 && <span className="text-[9px] text-emerald-300 block font-normal">Parcel Pickup (8AM-10PM)</span>}
+              <span className="text-[9px] text-blue-300 flex items-center gap-1 font-semibold">
+                <span>{buildingAgent.avatarIcon}</span>
+                <span>{buildingAgent.agentName}</span>
+              </span>
             </div>
           </div>
 

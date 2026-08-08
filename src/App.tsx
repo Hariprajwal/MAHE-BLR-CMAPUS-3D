@@ -12,6 +12,7 @@ import { LocationDetailPanel } from './components/ui/LocationDetailPanel';
 import { RoutePlannerPanel } from './components/ui/RoutePlannerPanel';
 import { Minimap } from './components/ui/Minimap';
 import { AIChatDrawer } from './components/ai/AIChatDrawer';
+import { BuildingAgentDrawer } from './components/ai/BuildingAgentDrawer';
 import { AdminDashboard } from './components/admin/AdminDashboard';
 import { VRExplorationModal } from './components/vr/VRExplorationModal';
 import { GateManagerModal } from './components/ui/GateManagerModal';
@@ -41,6 +42,7 @@ export function App() {
   const [isAdminOpen, setIsAdminOpen] = useState(false);
   const [isVROpen, setIsVROpen] = useState(false);
   const [isGateManagerOpen, setIsGateManagerOpen] = useState(false);
+  const [isBuildingAgentOpen, setIsBuildingAgentOpen] = useState(false);
 
   // AI Agent & Verification Queue State
   const [changeRequests, setChangeRequests] = useState<CampusChangeRequest[]>(INITIAL_CHANGE_REQUESTS);
@@ -53,29 +55,24 @@ export function App() {
     setTimeOfDay(nextNight ? 'night' : 'day');
   };
 
-  // Open VR Modal when cameraMode changes to VR
   useEffect(() => {
     if (cameraMode === 'vr') {
       setIsVROpen(true);
     }
   }, [cameraMode]);
 
-  // Handle POI selection
   const handleSelectPoi = (poi: CampusPOI) => {
     setSelectedPoi(poi);
   };
 
-  // Handle POI navigation trigger
   const handleNavigateTo = (poi: CampusPOI) => {
     setIsRouteOpen(true);
   };
 
-  // Handle Aerial View toggle
   const handleAerialView = () => {
     setCameraMode('aerial');
   };
 
-  // Handle 3D Building Interior View
   const handleEnterInterior = (poi: CampusPOI) => {
     confetti({
       particleCount: 50,
@@ -85,7 +82,11 @@ export function App() {
     alert(`Entering 3D Architectural Interior View for ${poi.name}. Loading floorplan meshes...`);
   };
 
-  // Handle approving AI change proposal
+  const handleOpenBuildingAgent = (poi: CampusPOI) => {
+    setSelectedPoi(poi);
+    setIsBuildingAgentOpen(true);
+  };
+
   const handleApproveChange = (change: CampusChangeRequest) => {
     setChangeRequests((prev) =>
       prev.map((c) => (c.id === change.id ? { ...c, verificationStatus: 'approved_manual' } : c))
@@ -116,14 +117,12 @@ export function App() {
     });
   };
 
-  // Handle rejecting AI change proposal
   const handleRejectChange = (changeId: string) => {
     setChangeRequests((prev) =>
       prev.map((c) => (c.id === changeId ? { ...c, verificationStatus: 'rejected' } : c))
     );
   };
 
-  // Handle adding new change proposal from live scan
   const handleAddChangeProposal = (newChange: CampusChangeRequest) => {
     setChangeRequests((prev) => [newChange, ...prev]);
 
@@ -205,7 +204,7 @@ export function App() {
         }}
       />
 
-      {/* Bottom Corner Radar Minimap */}
+      {/* Bottom Corner OpenFreeMap Radar Minimap */}
       <Minimap locations={locations} selectedPoi={selectedPoi} onSelectPoi={handleSelectPoi} />
 
       {/* Context Panel for Selected POI */}
@@ -215,6 +214,14 @@ export function App() {
         onNavigateTo={handleNavigateTo}
         onAerialView={handleAerialView}
         onEnterInterior={handleEnterInterior}
+        onOpenBuildingAgent={handleOpenBuildingAgent}
+      />
+
+      {/* Building In-Charge AI Agent Drawer */}
+      <BuildingAgentDrawer
+        isOpen={isBuildingAgentOpen}
+        poi={selectedPoi}
+        onClose={() => setIsBuildingAgentOpen(false)}
       />
 
       {/* Campus Gate Management Hub */}
