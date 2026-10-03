@@ -1,0 +1,32 @@
+# MAHE Bengaluru 3D Digital Twin
+
+> A Photorealistic, AI-Powered 3D Campus Digital Twin & Geospatial Simulation built with React Three Fiber, CesiumGS OGC 3D Tiles, TypeScript, and Vite.
+
+## Summary
+
+MAHE Bengaluru 3D Digital Twin provides an interactive 3D WebGL replica of the 85-acre Manipal Academy of Higher Education (MAHE) Bengaluru campus (13.1169° N, 77.5901° E). It features physically based rendering (PBR), real-time post-processing (SSAO, Bloom, ACES Filmic Tone Mapping), A* topological pathfinding, CesiumGS OGC 3D Tiles streaming, autonomous AI building in-charge agents, and campus logistics hubs.
+
+## Key Links & Files
+
+- [Human Documentation](README.md): Comprehensive project guide with features, architecture, installation, and roadmap.
+- [Agent Guide](AGENTS.md): Machine-readable technical architecture, coordinate mappings, schemas, and CLI commands for AI agents.
+- [Contributing](CONTRIBUTING.md): Guidelines for submitting pull requests, reporting bugs, and updating geospatial data.
+- [Code of Conduct](CODE_OF_CONDUCT.md): Contributor Covenant v2.1 community guidelines.
+- [License](LICENSE): MIT License terms.
+
+## Core Capabilities
+
+- **3D Engine**: WebGL rendering via Three.js r185, React Three Fiber, and @react-three/drei with dynamic Day/Night/Dusk lighting and monsoon weather.
+- **Geospatial Tiles**: NASA-AMMOS 3d-tiles-renderer with Cesium Ion authentication for streaming massive OSM buildings and terrain.
+- **Pathfinding**: A* shortest-path graph solver with real-time 3D animated walking spline and turn-by-turn directions.
+- **AI Agent System**: Autonomous building in-charge personas with domain knowledge, prompt recommendations, and campus change request audit trails.
+- **Access Control**: Live Gate 1, 2, and 3 logistics and access monitoring.
+- **Governance**: Administrator dashboard for approving or rejecting crowd-sourced and automated campus updates with audit logging.
+
+## Technical Specifications
+
+- Framework: React 19, TypeScript, Vite
+- Styling: TailwindCSS 4, Lucide React
+- 3D Libraries: Three.js, React Three Fiber, Postprocessing
+- Coordinates: WGS84 13.1169° N, 77.5901° E (1 unit = ~3.5 meters)
+- Node Runtime: >= 18.0.0
